@@ -1,10 +1,7 @@
 """ Module of res.partner odoo model """
 from ..auth import odoo 
 
-url = 'http://52.142.63.20:1269'
-db = 'fraccion_test'
-username = 'WSadnet@adnetworks.cl'
-password = 'WSadnet@adnetworks.cl'
+
 
 class ResPartnerList():
     """Odoo model: res.partner list for customer and company"""
@@ -14,9 +11,60 @@ class ResPartnerList():
         odoo_client = odoo.OdooClient()
         uid, models = odoo_client.logging()
         
-        s_read = models.execute_kw(db, uid, password,
+        s_read = models.execute_kw(odoo_client.db, uid, odoo_client.password,
             'res.partner', 'search_read',
             [[['is_company', '=', True], ['customer', '=', True]]],
             {'fields': ['name', 'country_id', 'comment'], 'limit': 5})
         return s_read
 
+
+    def partner_create(name,rut,comment,phone,email):
+        odoo_client = odoo.OdooClient()
+        uid, models = odoo_client.logging()
+        id = models.execute_kw(odoo_client.db, uid, odoo_client.password, 'res.partner', 'create', 
+            [{
+            'name': name,
+            'rut' : rut,
+            'comment' : comment,
+            'phone' : phone,
+            'email' : email
+            }])
+        name = models.execute_kw(odoo_client.db, uid, odoo_client.password, 'res.partner', 'name_get', [[id]])
+        return name
+    
+    def ObtenerPartnerSegunID(id):
+
+        odoo_client = odoo.OdooClient()
+        uid, models = odoo_client.logging()
+
+        result = models.execute_kw(odoo_client.db, uid, odoo_client.password,
+                    'res.partner', 'search_read',
+                    [[['id','=',id]]],
+            {'fields': ['rut', 'comment', 'phone','email']})
+                       
+        return result
+    
+    def ActualizarPartnerSegunID(id, data):
+
+        odoo_client = odoo.OdooClient()
+        uid, models = odoo_client.logging()
+        #12148 frank
+        #12165  don cangrejo
+        #12170
+
+        models.execute_kw(odoo_client.db, uid, odoo_client.password, 'res.partner', 'write', [[int(id)], 
+        {
+             'name': data['name'],
+             'rut' : data['rut'],
+             'comment' : data['comment'],
+             'phone' : data['phone'],
+             'email': data['email']
+        }])
+    def EliminarSegunID(id):
+        odoo_client = odoo.OdooClient()
+        uid, models = odoo_client.logging()
+        models.execute_kw(odoo_client.db, uid, odoo_client.password, 'res.partner', 'unlink', [[int(id)]])
+        # check if the deleted record is still in the database
+        check = models.execute_kw(odoo_client.db, uid, odoo_client.password,
+            'res.partner', 'search', [[['id', '=', id]]])
+        return check
